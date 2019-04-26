@@ -10,6 +10,7 @@ export class MouseInput {
         // check if an instance already exists
         if (MouseInput != null)
             return MouseInput.instance
+
         // if it doesn't, save this one
         MouseInput.instance = this
     }
