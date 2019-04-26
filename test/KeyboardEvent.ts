@@ -1,69 +1,63 @@
 import { KeyboardInput } from "../src/keyboard/KeyboardInput"
 import { expect } from "chai"
 import { JSDOM } from "jsdom"
+import * as keycode from "keycode"
 
-const { window } = (new JSDOM(`<body></body>`));
-const { document } = window.window;
+const { window } = (new JSDOM(`<body></body>`))
+const { document } = window.window
 
-document.addEventListener("keydown", console.log);
+// @ts-ignore
+global.document = document;
 
-// function createKeyboardEvent(key: string): any[] {
-//     return ["keydown", true, true, window, key, key.charCodeAt(0), "", true, ""]
-// }
+/**
+ * This function dispatches a KeyboardEvent.
+ * @param key The name of the key eg: "Space" or "l"
+ * @param eventType Type of event eg: "keyup"
+ */
+function triggerKeyboardEvent(eventType: string, key: string): void {
+    // The event, which will be dispatched
+    const event: KeyboardEvent = document.createEvent("KeyboardEvent")
 
-function triggerKeyDown(key: string) {
-    const event = document.createEvent("KeyboardEvent")
+    // @ts-ignore
+    const keyCode: string = keycode.codes[key];
 
     // Deprecated but OK for testing, I guess..
-    event.initKeyboardEvent("keydown", true, true, window, key, key.charCodeAt(0), "", true, "")
+    event.initKeyboardEvent(
+        eventType, true, true, window, keyCode, 0, "", true, "en")
 
-    const canceled = !document.dispatchEvent(event)
-
-    if (canceled) {
-        // Event handled
-        console.log("event was handled")
-    } else {
-        console.log("event was ignored")
-        // Ignored
-    }
+    // The return value indicates wether if a handler was attached to the event
+    // return !document.dispatchEvent(event)
 }
 
-triggerKeyDown("s");
-
-// set the global document object
-function setDocument(newDocument: object) {
-    //@ts-ignore
-    global.document = newDocument
+/**
+ * @param keys List of keys, which shall be pressed at the same time.
+ */
+function multiKeyPress(keys: string[]) {
+    keys.map((key) => triggerKeyboardEvent("keydown", key));
+    keys.map((key) => triggerKeyboardEvent("keyup", key));
 }
 
 describe("Test KeyboardInput", () => {
-    // set empty document with an event handler
-    const subscriptions: { [ev: string]: ((val: any) => void)[] } = {}
-
-    setDocument({
-        addListener: (ev: string, cb: (val: any) => void) => {
-            if (subscriptions[ev] == undefined)
-                subscriptions[ev] = []
-            subscriptions[ev].push(cb)
-        },
-        removeListener: (ev: string, cb: (val: any) => void) => {
-            subscriptions[ev].splice(subscriptions[ev].indexOf(cb), 1)
-        }
-    })
-
-    function emit(ev: string, val: any) {
-        if (subscriptions[ev] != undefined)
-            subscriptions[ev].forEach(sub => sub(val))
-    }
-
     it("should be able to be created with no arguments", () => {
         new KeyboardInput().dispose()
     })
 
-    // generate a random key
+    // generate a random key not clever to have random parameters
+    // => unpredictable testing outcome
     const letters = "qwertyuiopasdfghjklzxcvbnm1234567890"
     const keyToPress = letters[Math.floor(Math.random() * letters.length)]
+
     it("should be able to be created with some arguments", () => {
         new KeyboardInput(keyToPress).dispose()
+    })
+
+    it("should be able to update it's pressed keys", () => {
+        const keyInput = new KeyboardInput(keyToPress)
+
+        console.log(keyInput.keys)
+        triggerKeyboardEvent("keydown", keyToPress)
+        console.log(keyInput.keys)
+
+        keyInput.dispose()
     })
 })
