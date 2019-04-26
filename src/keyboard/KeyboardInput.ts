@@ -18,7 +18,7 @@ export class KeyboardInput {
     keys: Array<string>
 
     /**
-     * an observable of the state o the event
+     * an observable of the state of the event
      */
     valueChanges = new Subject<boolean>()
 
@@ -44,11 +44,16 @@ export class KeyboardInput {
                     const last = this.pressed.length
 
                     //iterate over the keys it listens to
-                    for (let i of this.keys)
+                    for (let i of this.keys) {
                         //if the key is pressed and it isn't already pressed,
                         //then add it to the pressed array
-                        if (i.charCodeAt(0) == keycode(e).charCodeAt(0) && this.pressed.indexOf(i) == -1)
+
+                        if (i.charCodeAt(0) == keycode(e).charCodeAt(0)
+                            && this.pressed.indexOf(i) == -1
+                        ) {
                             this.pressed.push(i)
+                        }
+                    }
 
                     //if there was no key pressed before, and now there is
                     //then change the state of the event and emit it

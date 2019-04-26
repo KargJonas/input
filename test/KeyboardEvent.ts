@@ -10,6 +10,11 @@ const { document } = window.window
 global.document = document;
 
 /**
+ * Issues: It seems like JSDOM is creating some wierd KeyboardEvent, which does not
+ * work with keycode.
+ */
+
+/**
  * This function dispatches a KeyboardEvent.
  * @param key The name of the key eg: "Space" or "l"
  * @param eventType Type of event eg: "keyup"
@@ -25,6 +30,8 @@ function triggerKeyboardEvent(eventType: string, key: string): void {
     event.initKeyboardEvent(
         eventType, true, true, window, keyCode, 0, "", true, "en")
 
+    document.dispatchEvent(event)
+
     // The return value indicates wether if a handler was attached to the event
     // return !document.dispatchEvent(event)
 }
@@ -34,6 +41,7 @@ function triggerKeyboardEvent(eventType: string, key: string): void {
  */
 function multiKeyPress(keys: string[]) {
     keys.map((key) => triggerKeyboardEvent("keydown", key));
+    // All keys pressed
     keys.map((key) => triggerKeyboardEvent("keyup", key));
 }
 
@@ -54,9 +62,8 @@ describe("Test KeyboardInput", () => {
     it("should be able to update it's pressed keys", () => {
         const keyInput = new KeyboardInput(keyToPress)
 
-        console.log(keyInput.keys)
+        // document.addEventListener("keydown", console.log)
         triggerKeyboardEvent("keydown", keyToPress)
-        console.log(keyInput.keys)
 
         keyInput.dispose()
     })
